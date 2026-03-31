@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /Users/sanghyun/Desktop/vibecoding -maxdepth 2 -name *.md -o -name *.json -o -name Makefile -o -name *.toml)",
+      "Bash(wc:*)",
+      "Bash(node:*)"
+    ]
+  }
+}

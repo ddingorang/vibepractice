@@ -1,0 +1,1119 @@
+<!-- Created: 2026-03-31 23:37:19 -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>오늘의 감정 일기 — AI 공감 다이어리</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* =============================================
+       리셋 & 기본 설정
+    ============================================= */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --color-bg:            #fdf6ec;
+      --color-card:          #fffaf3;
+      --color-text-primary:  #4a3728;
+      --color-text-secondary:#7a5c44;
+      --color-text-muted:    #a68b72;
+      --color-accent:        #e8845a;
+      --color-accent-light:  #f5b48a;
+      --color-border:        #e8d5be;
+      --color-shadow:        rgba(160, 120, 80, 0.12);
+
+      /* 강도별 색상 */
+      --color-low-bg:        #d8f0e8;
+      --color-low-text:      #3a7a5e;
+      --color-medium-bg:     #fde8d4;
+      --color-medium-text:   #b05c28;
+      --color-high-bg:       #fdd8cc;
+      --color-high-text:     #c0422a;
+
+      --font-serif:  'Noto Serif KR', 'Georgia', serif;
+      --font-sans:   'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+
+      --radius-card: 20px;
+      --radius-btn:  12px;
+      --radius-pill: 999px;
+
+      --transition-base: 0.25s ease;
+    }
+
+    /* =============================================
+       배경 — 따뜻한 크림 + 미묘한 종이 질감
+    ============================================= */
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--color-bg);
+      /* 양피지/종이 질감: 반투명 노이즈 패턴을 SVG 데이터 URI로 */
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E"),
+        linear-gradient(160deg, #fdf6ec 0%, #fceede 50%, #fdf0e0 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 48px 16px 64px;
+      color: var(--color-text-primary);
+      line-height: 1.6;
+    }
+
+    /* =============================================
+       다이어리 컨테이너 (카드)
+    ============================================= */
+    .diary-container {
+      background: var(--color-card);
+      box-shadow:
+        0 4px 24px var(--color-shadow),
+        0 1px 4px rgba(160, 120, 80, 0.08);
+      border-radius: var(--radius-card);
+      padding: 40px;
+      width: 100%;
+      max-width: 640px;
+      /* 카드 안에도 미세한 종이결 */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+    }
+
+    /* =============================================
+       헤더
+    ============================================= */
+    .diary-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .diary-header .today-date {
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;      /* 13px */
+      font-weight: 500;
+      color: var(--color-text-muted);
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .diary-header h1 {
+      font-family: var(--font-serif);
+      font-size: 1.625rem;       /* 26px */
+      font-weight: 600;
+      color: var(--color-text-primary);
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+
+    .diary-header .subtitle {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      font-weight: 400;
+    }
+
+    /* 헤더 장식 구분선 */
+    .header-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 0;
+    }
+
+    .header-divider::before,
+    .header-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+    }
+
+    .header-divider span {
+      font-size: 1rem;
+      opacity: 0.55;
+    }
+
+    /* =============================================
+       입력 폼
+    ============================================= */
+    .diary-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .textarea-wrapper {
+      position: relative;
+      margin-bottom: 6px;
+    }
+
+    /* 일기장 줄 노트 스타일 textarea */
+    #diary-input {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      color: var(--color-text-primary);
+      width: 100%;
+      height: 160px;
+      resize: none;
+      border: none;
+      border-bottom: 2px solid var(--color-border);
+      border-radius: 8px 8px 0 0;
+      outline: none;
+      padding: 12px 16px;
+      line-height: 2;            /* 줄 노트 효과를 위해 2배 */
+
+      /* 줄이 그어진 노트 배경 */
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          transparent,
+          transparent calc(2rem - 1px),
+          #ede0cc calc(2rem - 1px),
+          #ede0cc 2rem
+        ),
+        #fefbf6;
+
+      background-attachment: local;
+      transition:
+        background var(--transition-base),
+        border-color var(--transition-base);
+    }
+
+    #diary-input::placeholder {
+      color: var(--color-text-muted);
+      font-style: italic;
+    }
+
+    #diary-input:focus {
+      border-bottom-color: var(--color-accent);
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          transparent,
+          transparent calc(2rem - 1px),
+          #f5d8c0 calc(2rem - 1px),
+          #f5d8c0 2rem
+        ),
+        #fff8f0;
+    }
+
+    /* 글자 수 카운터 */
+    .char-counter {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      text-align: right;
+      padding: 4px 2px 12px;
+      transition: color var(--transition-base);
+    }
+
+    .char-counter.near-limit {
+      color: #c0522a;
+      font-weight: 600;
+    }
+
+    /* 에러 메시지 */
+    #error-message {
+      display: none;
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      color: #c0422a;
+      background: #fde8e4;
+      border-left: 3px solid #e07060;
+      border-radius: 0 6px 6px 0;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+    }
+
+    /* 제출 버튼 */
+    #submit-btn {
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, #e8845a 0%, #f5a878 50%, #e8845a 100%);
+      background-size: 200% 200%;
+      border: none;
+      border-radius: var(--radius-btn);
+      padding: 14px 24px;
+      width: 100%;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      box-shadow:
+        0 4px 16px rgba(232, 132, 90, 0.35),
+        0 1px 4px rgba(232, 132, 90, 0.2);
+      transition:
+        transform var(--transition-base),
+        box-shadow var(--transition-base),
+        background-position var(--transition-base),
+        opacity var(--transition-base);
+    }
+
+    #submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow:
+        0 8px 24px rgba(232, 132, 90, 0.4),
+        0 2px 8px rgba(232, 132, 90, 0.25);
+      background-position: right center;
+    }
+
+    #submit-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    #submit-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* =============================================
+       결과 섹션 컨테이너
+    ============================================= */
+    #result-container {
+      margin-top: 28px;
+    }
+
+    /* =============================================
+       결과 카드 애니메이션
+    ============================================= */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result-card {
+      animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* 섹션 공통 레이블 */
+    .section-label {
+      font-family: var(--font-sans);
+      font-size: 0.6875rem;      /* 11px */
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+
+    /* 결과 구분선 */
+    .result-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+      margin: 18px 0;
+    }
+
+    /* =============================================
+       감정 섹션
+    ============================================= */
+    .emotion-section {
+      padding: 20px;
+      background: linear-gradient(135deg, #fff8f0, #fdf4e8);
+      border-radius: 14px;
+      border: 1px solid var(--color-border);
+      margin-bottom: 16px;
+    }
+
+    .emotion-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    /* 감정 태그 pill */
+    .emotion-tag {
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.02em;
+    }
+
+    .emotion-tag.intensity-low {
+      background: var(--color-low-bg);
+      color: var(--color-low-text);
+    }
+
+    .emotion-tag.intensity-medium {
+      background: var(--color-medium-bg);
+      color: var(--color-medium-text);
+    }
+
+    .emotion-tag.intensity-high {
+      background: var(--color-high-bg);
+      color: var(--color-high-text);
+    }
+
+    /* 강도 배지 */
+    .intensity-badge {
+      display: inline-block;
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-pill);
+      padding: 3px 10px;
+    }
+
+    /* =============================================
+       공감 메시지 섹션
+    ============================================= */
+    .empathy-section {
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .empathy-message {
+      font-family: var(--font-serif);
+      font-size: 0.9375rem;
+      font-style: italic;
+      color: var(--color-text-secondary);
+      line-height: 1.8;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+
+    /* =============================================
+       위로 한마디 섹션
+    ============================================= */
+    .comfort-section {
+      text-align: center;
+      padding: 20px 24px;
+      background: linear-gradient(135deg, #fdf0e8, #fde8d8);
+      border-radius: 14px;
+      border: 1px solid #f0c8a8;
+      position: relative;
+    }
+
+    /* 큰 따옴표 장식 */
+    .comfort-section::before {
+      content: '\201C';          /* 왼쪽 큰 따옴표 */
+      position: absolute;
+      top: -8px;
+      left: 20px;
+      font-family: var(--font-serif);
+      font-size: 4rem;
+      color: var(--color-accent-light);
+      line-height: 1;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .comfort-tip {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      line-height: 1.6;
+      word-break: keep-all;
+    }
+
+    /* 폴백 안내 */
+    .fallback-notice {
+      font-family: var(--font-sans);
+      font-size: 0.6875rem;
+      color: var(--color-text-muted);
+      text-align: right;
+      margin-top: 12px;
+      opacity: 0.7;
+    }
+
+    /* =============================================
+       하단 푸터
+    ============================================= */
+    .diary-footer {
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid var(--color-border);
+      text-align: center;
+    }
+
+    .diary-footer p {
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      color: var(--color-text-muted);
+      line-height: 1.6;
+    }
+
+    .diary-footer .heart {
+      color: var(--color-accent);
+      font-size: 0.875rem;
+    }
+
+    /* =============================================
+       반응형 — 모바일 (480px 이하)
+    ============================================= */
+    @media (max-width: 480px) {
+      body {
+        padding: 24px 12px 48px;
+      }
+
+      .diary-container {
+        padding: 24px 20px;
+        border-radius: 16px;
+      }
+
+      .diary-header h1 {
+        font-size: 1.375rem;
+      }
+
+      #diary-input {
+        height: 140px;
+        font-size: 0.9375rem;
+      }
+
+      #submit-btn {
+        font-size: 0.875rem;
+        padding: 13px 20px;
+      }
+
+      .empathy-message {
+        font-size: 0.875rem;
+      }
+
+      .comfort-tip {
+        font-size: 0.9375rem;
+      }
+
+      .emotion-section,
+      .empathy-section,
+      .comfort-section {
+        padding: 16px;
+      }
+    }
+
+    /* =============================================
+       저장 버튼
+    ============================================= */
+    .save-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 16px;
+      width: 100%;
+      padding: 11px 20px;
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-accent);
+      background: transparent;
+      border: 2px solid var(--color-accent);
+      border-radius: var(--radius-btn);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      letter-spacing: 0.02em;
+    }
+
+    .save-btn:hover:not(:disabled) {
+      background: var(--color-accent);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .save-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .save-btn.saved {
+      color: #3a7a5e;
+      border-color: #3a7a5e;
+    }
+
+    /* =============================================
+       지난 일기 섹션
+    ============================================= */
+    .history-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 28px;
+      padding: 14px 0;
+      border-top: 1px solid var(--color-border);
+      background: none;
+      border-left: none;
+      border-right: none;
+      border-bottom: none;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      letter-spacing: 0.02em;
+      transition: color var(--transition-base);
+    }
+
+    .history-toggle:hover {
+      color: var(--color-accent);
+    }
+
+    .history-toggle .toggle-arrow {
+      font-size: 0.75rem;
+      transition: transform var(--transition-base);
+    }
+
+    .history-toggle.open .toggle-arrow {
+      transform: rotate(180deg);
+    }
+
+    #history-container {
+      display: none;
+      margin-top: 4px;
+    }
+
+    .history-empty {
+      text-align: center;
+      padding: 24px 0;
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      font-style: italic;
+    }
+
+    .history-entry {
+      padding: 16px;
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      margin-bottom: 12px;
+      background: #fefbf6;
+      cursor: pointer;
+      transition: box-shadow var(--transition-base), border-color var(--transition-base);
+    }
+
+    .history-entry:hover {
+      box-shadow: 0 2px 12px var(--color-shadow);
+      border-color: var(--color-accent-light);
+    }
+
+    .history-entry-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .history-entry-date {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+
+    .history-entry-emotions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .history-entry-content {
+      font-family: var(--font-serif);
+      font-size: 0.9rem;
+      color: var(--color-text-primary);
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .history-detail {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .history-detail.open {
+      display: block;
+    }
+
+    .history-detail .empathy-message {
+      font-size: 0.875rem;
+      margin-bottom: 10px;
+    }
+
+    .history-detail .comfort-tip {
+      font-size: 0.9rem;
+    }
+
+    .history-delete-btn {
+      margin-top: 12px;
+      padding: 5px 12px;
+      font-size: 0.75rem;
+      font-family: var(--font-sans);
+      color: #c0422a;
+      background: none;
+      border: 1px solid #e0a090;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .history-delete-btn:hover {
+      background: #fde8e4;
+    }
+
+    /* =============================================
+       포커스 가시성 (접근성)
+    ============================================= */
+    :focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    /* 스크린 리더 전용 텍스트 */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="diary-container" role="main">
+
+    <!-- =========================================
+         헤더
+    ========================================= -->
+    <header class="diary-header">
+      <span id="today-date" class="today-date" aria-live="polite"></span>
+      <h1>오늘의 감정 일기</h1>
+      <p class="subtitle">오늘 하루의 감정을 솔직하게 적어보세요</p>
+      <div class="header-divider" aria-hidden="true">
+        <span>&#x273F;</span>
+      </div>
+    </header>
+
+    <!-- =========================================
+         입력 폼
+    ========================================= -->
+    <form class="diary-form" onsubmit="handleSubmit(event)" novalidate>
+      <div class="textarea-wrapper">
+        <label for="diary-input" class="sr-only">오늘 있었던 일 입력</label>
+        <textarea
+          id="diary-input"
+          placeholder="오늘 하루 어떤 일이 있었나요?&#10;기쁜 일, 힘든 일, 사소한 감정까지 편하게 적어보세요..."
+          maxlength="200"
+          aria-describedby="char-counter error-message"
+          aria-label="오늘 있었던 일을 자유롭게 적어주세요"
+        ></textarea>
+      </div>
+
+      <div class="char-counter" id="char-counter" aria-live="polite" aria-atomic="true">
+        0 / 200
+      </div>
+
+      <p id="error-message" role="alert" style="display:none"></p>
+
+      <button id="submit-btn" type="submit">
+        오늘의 감정 분석하기
+      </button>
+    </form>
+
+    <!-- =========================================
+         결과 섹션 (초기 숨김)
+    ========================================= -->
+    <div
+      id="result-container"
+      aria-live="polite"
+      aria-atomic="true"
+      style="display:none"
+    ></div>
+
+    <!-- =========================================
+         지난 일기 보기
+    ========================================= -->
+    <button class="history-toggle" id="history-toggle" onclick="toggleHistory()" aria-expanded="false">
+      <span>📖 지난 일기 보기</span>
+      <span class="toggle-arrow">▼</span>
+    </button>
+    <div id="history-container" role="region" aria-label="저장된 일기 목록"></div>
+
+    <!-- =========================================
+         하단 푸터
+    ========================================= -->
+    <footer class="diary-footer">
+      <p>
+        <span class="heart" aria-hidden="true">&#x2665;</span>
+        AI가 당신의 감정을 판단하지 않아요. 오직 공감할 뿐이에요.
+      </p>
+    </footer>
+
+  </div><!-- /.diary-container -->
+
+  <!-- =========================================
+       JavaScript
+  ========================================= -->
+  <script>
+    const CONFIG = {
+      API_URL: 'https://openrouter.ai/api/v1/chat/completions',
+      API_KEY: 'YOUR_OPENROUTER_API_KEY',
+      PRIMARY_MODEL: 'nvidia/nemotron-3-super-120b-a12b:free',
+      FALLBACK_MODEL: 'meta-llama/llama-3.3-70b-instruct:free',
+      MAX_TOKENS: 512,
+      TEMPERATURE: 0.75,
+      MAX_INPUT_LENGTH: 200,
+      REQUEST_TIMEOUT_MS: 30000,
+    };
+
+    const SYSTEM_PROMPT = `당신은 따뜻하고 공감 능력이 뛰어난 감정 상담 AI입니다.
+사용자가 오늘 있었던 일을 말하면, 반드시 아래 JSON 형식으로만 응답하세요.
+
+{
+  "emotions": ["감정1", "감정2"],
+  "intensity": "낮음",
+  "empathy_message": "공감과 위로 메시지",
+  "comfort_tip": "짧은 위로 한 마디"
+}
+
+규칙:
+- emotions: 감지된 감정을 한국어로 1~3개 (예: ["외로움", "불안"])
+- intensity: "낮음", "보통", "높음" 중 하나만 사용
+- empathy_message: 2~3문장, 판단이나 조언 없이 오직 공감과 위로만, 따뜻하고 진심 어린 어조
+- comfort_tip: 20자 이내의 짧고 따뜻한 문장
+- 절대로 JSON 이외의 텍스트를 출력하지 마세요. 코드블록(\`\`\`)도 사용하지 마세요.`;
+
+    function validateInput(text) {
+      const trimmed = text.trim();
+      if (!trimmed) return { valid: false, error: '오늘 있었던 일을 입력해 주세요.' };
+      if (trimmed.length < 5) return { valid: false, error: '조금 더 자세히 이야기해 주실 수 있나요? (5자 이상)' };
+      if (trimmed.length > CONFIG.MAX_INPUT_LENGTH) return { valid: false, error: `${CONFIG.MAX_INPUT_LENGTH}자 이내로 입력해 주세요. (현재 ${trimmed.length}자)` };
+      return { valid: true, text: trimmed };
+    }
+
+    async function fetchWithTimeout(url, options, timeoutMs) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        return response;
+      } catch (err) {
+        if (err.name === 'AbortError') throw new Error('TIMEOUT');
+        throw err;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }
+
+    async function callOpenRouterAPI(userInput, model = CONFIG.PRIMARY_MODEL) {
+      const requestBody = {
+        model,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userInput },
+        ],
+        max_tokens: CONFIG.MAX_TOKENS,
+        temperature: CONFIG.TEMPERATURE,
+      };
+      const response = await fetchWithTimeout(CONFIG.API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${CONFIG.API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.href || 'https://localhost',
+          'X-Title': 'AI Empathy Diary',
+        },
+        body: JSON.stringify(requestBody),
+      }, CONFIG.REQUEST_TIMEOUT_MS);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw createAPIError(response.status, errorData);
+      }
+      return response.json();
+    }
+
+    function createAPIError(status, errorData) {
+      const msgs = {
+        400: '잘못된 요청입니다.',
+        401: 'API 키가 유효하지 않습니다.',
+        402: 'API 크레딧이 부족합니다.',
+        429: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
+        500: 'AI 서버에 일시적인 오류가 발생했습니다.',
+        502: 'AI 서버에 접근할 수 없습니다.',
+        503: 'AI 서버가 일시적으로 중단되었습니다.',
+      };
+      const message = msgs[status] || errorData?.error?.message || `알 수 없는 오류 (HTTP ${status})`;
+      const error = new Error(message);
+      error.status = status;
+      return error;
+    }
+
+    function extractContentFromResponse(apiResponse) {
+      const choices = apiResponse?.choices;
+      if (!choices || choices.length === 0) throw new Error('AI 응답에 내용이 없습니다.');
+      const content = choices[0]?.message?.content;
+      if (!content || typeof content !== 'string') throw new Error('AI 응답 형식이 올바르지 않습니다.');
+      return content.trim();
+    }
+
+    function parseJSONContent(content) {
+      let clean = content.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+      try { return JSON.parse(clean); } catch {}
+      const match = clean.match(/\{[\s\S]*\}/);
+      if (match) { try { return JSON.parse(match[0]); } catch {} }
+      return fallbackTextExtract(clean);
+    }
+
+    function fallbackTextExtract(text) {
+      const empathyMatch = text.match(/"empathy_message"\s*:\s*"([^"]+)"/);
+      const comfortMatch = text.match(/"comfort_tip"\s*:\s*"([^"]+)"/);
+      const intensityMatch = text.match(/"intensity"\s*:\s*"([^"]+)"/);
+      const emotionsMatch = text.match(/"emotions"\s*:\s*\[([^\]]+)\]/);
+      let emotions = ['알 수 없음'];
+      if (emotionsMatch) emotions = emotionsMatch[1].split(',').map(e => e.trim().replace(/"/g, '')).filter(Boolean);
+      return {
+        emotions,
+        intensity: intensityMatch?.[1] || '보통',
+        empathy_message: empathyMatch?.[1] || text.substring(0, 200),
+        comfort_tip: comfortMatch?.[1] || '오늘 하루도 수고했어요.',
+        _fallback: true,
+      };
+    }
+
+    function validateAndNormalizeResponse(parsed) {
+      const VALID = ['낮음', '보통', '높음'];
+      let emotions = Array.isArray(parsed.emotions) && parsed.emotions.length > 0
+        ? parsed.emotions.slice(0, 3).map(e => String(e).trim()).filter(Boolean)
+        : ['감정 미분류'];
+      let intensity = VALID.includes(parsed.intensity) ? parsed.intensity : '보통';
+      let empathy_message = (parsed.empathy_message && typeof parsed.empathy_message === 'string')
+        ? parsed.empathy_message.trim()
+        : '오늘 하루도 정말 수고하셨어요. 당신의 마음이 느껴집니다.';
+      let comfort_tip = (parsed.comfort_tip && typeof parsed.comfort_tip === 'string')
+        ? parsed.comfort_tip.trim()
+        : '오늘 하루도 잘 버텨냈어요.';
+      return { emotions, intensity, empathy_message, comfort_tip, _fallback: parsed._fallback || false };
+    }
+
+    function getIntensityClass(intensity) {
+      return { '낮음': 'intensity-low', '보통': 'intensity-medium', '높음': 'intensity-high' }[intensity] || 'intensity-medium';
+    }
+
+    async function analyzeDiary(userInput) {
+      const validation = validateInput(userInput);
+      if (!validation.valid) return { success: false, errorType: 'VALIDATION', message: validation.error };
+      let lastError = null;
+      const models = [CONFIG.PRIMARY_MODEL, CONFIG.FALLBACK_MODEL];
+      for (let i = 0; i < models.length; i++) {
+        try {
+          const apiResponse = await callOpenRouterAPI(validation.text, models[i]);
+          const content = extractContentFromResponse(apiResponse);
+          const parsed = parseJSONContent(content);
+          const normalized = validateAndNormalizeResponse(parsed);
+          return { success: true, data: normalized, model: models[i] };
+        } catch (error) {
+          lastError = error;
+          if (error.status === 401 || i === models.length - 1) break;
+          await new Promise(r => setTimeout(r, 500));
+        }
+      }
+      return {
+        success: false,
+        errorType: lastError?.message === 'TIMEOUT' ? 'TIMEOUT' : lastError?.status === 429 ? 'RATE_LIMIT' : 'API_ERROR',
+        message: lastError?.message || '알 수 없는 오류가 발생했습니다.',
+      };
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.appendChild(document.createTextNode(text));
+      return div.innerHTML;
+    }
+
+    function renderResult(data, container, originalInput) {
+      if (!container) return;
+      const tagsHTML = data.emotions.map(e => `<span class="emotion-tag ${getIntensityClass(data.intensity)}">${escapeHtml(e)}</span>`).join('');
+      container.innerHTML = `
+        <div class="result-card" role="region" aria-label="감정 분석 결과">
+          <div class="emotion-section">
+            <p class="section-label">오늘의 감정</p>
+            <div class="emotion-tags">${tagsHTML}</div>
+            <span class="intensity-badge">${escapeHtml(data.intensity)} 강도</span>
+          </div>
+          <div class="empathy-section">
+            <p class="section-label">AI의 공감 메시지</p>
+            <p class="empathy-message">${escapeHtml(data.empathy_message)}</p>
+          </div>
+          <div class="comfort-section">
+            <p class="comfort-tip">"${escapeHtml(data.comfort_tip)}"</p>
+          </div>
+          ${data._fallback ? '<p class="fallback-notice">* 일부 응답이 보정되었습니다.</p>' : ''}
+          <button class="save-btn" id="save-btn" onclick="handleSave()">💾 일기 저장하기</button>
+        </div>`;
+      container._currentData = data;
+      container._currentInput = originalInput;
+      container.style.display = 'block';
+      requestAnimationFrame(() => {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+
+    async function handleSubmit(event) {
+      if (event) event.preventDefault();
+      const inputEl  = document.getElementById('diary-input');
+      const resultEl = document.getElementById('result-container');
+      const submitBtn = document.getElementById('submit-btn');
+      const errorEl  = document.getElementById('error-message');
+      if (errorEl) { errorEl.textContent = ''; errorEl.style.display = 'none'; }
+
+      // 유효성 검사 오류는 API 호출 전에 먼저 처리 — 기존 결과를 지우지 않음
+      const preCheck = validateInput(inputEl?.value || '');
+      if (!preCheck.valid) {
+        if (errorEl) { errorEl.textContent = preCheck.error; errorEl.style.display = 'block'; }
+        return;
+      }
+
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '마음을 읽는 중...'; }
+      if (resultEl) resultEl.style.display = 'none';
+      const result = await analyzeDiary(inputEl?.value || '');
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '오늘의 감정 분석하기'; }
+      if (!result.success) {
+        if (errorEl) { errorEl.textContent = result.message; errorEl.style.display = 'block'; }
+        return;
+      }
+      renderResult(result.data, resultEl, inputEl?.value?.trim() || '');
+    }
+
+    function handleSave() {
+      const resultEl = document.getElementById('result-container');
+      const btn = document.getElementById('save-btn');
+      const data = resultEl?._currentData;
+      const content = resultEl?._currentInput;
+      if (!data || !content) return;
+      saveEntry(content, data);
+      btn.textContent = '✓ 저장되었습니다';
+      btn.disabled = true;
+      btn.classList.add('saved');
+      // 열려 있으면 목록 새로고침
+      if (document.getElementById('history-container').style.display === 'block') {
+        renderHistory();
+      }
+    }
+
+    // ──────────────────────────────────────────────
+    // 일기 저장 / 조회 (localStorage)
+    // ──────────────────────────────────────────────
+    const STORAGE_KEY = 'ai_diary_entries';
+
+    function loadEntries() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      } catch { return []; }
+    }
+
+    function saveEntry(content, data) {
+      const entries = loadEntries();
+      const now = new Date();
+      entries.unshift({
+        id: now.getTime(),
+        date: now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }),
+        dateISO: now.toISOString().slice(0, 10),
+        content,
+        emotions: data.emotions,
+        intensity: data.intensity,
+        empathy_message: data.empathy_message,
+        comfort_tip: data.comfort_tip,
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+
+    function deleteEntry(id) {
+      const entries = loadEntries().filter(e => e.id !== id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+      renderHistory();
+    }
+
+    function toggleHistory() {
+      const container = document.getElementById('history-container');
+      const btn = document.getElementById('history-toggle');
+      const isOpen = container.style.display === 'block';
+      container.style.display = isOpen ? 'none' : 'block';
+      btn.classList.toggle('open', !isOpen);
+      btn.setAttribute('aria-expanded', String(!isOpen));
+      if (!isOpen) renderHistory();
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('history-container');
+      if (!container) return;
+      const entries = loadEntries();
+      if (entries.length === 0) {
+        container.innerHTML = '<p class="history-empty">아직 저장된 일기가 없어요.</p>';
+        return;
+      }
+      container.innerHTML = entries.map(e => `
+        <div class="history-entry" onclick="toggleDetail(${e.id})">
+          <div class="history-entry-header">
+            <span class="history-entry-date">${escapeHtml(e.date)}</span>
+            <div class="history-entry-emotions">
+              ${e.emotions.map(em => `<span class="emotion-tag ${getIntensityClass(e.intensity)}" style="font-size:0.75rem;padding:3px 10px">${escapeHtml(em)}</span>`).join('')}
+            </div>
+          </div>
+          <p class="history-entry-content">${escapeHtml(e.content)}</p>
+          <div class="history-detail" id="detail-${e.id}">
+            <p class="section-label">AI의 공감 메시지</p>
+            <p class="empathy-message" style="margin-bottom:12px">${escapeHtml(e.empathy_message)}</p>
+            <div class="comfort-section" style="padding:14px 20px">
+              <p class="comfort-tip">"${escapeHtml(e.comfort_tip)}"</p>
+            </div>
+            <button class="history-delete-btn" onclick="event.stopPropagation(); deleteEntry(${e.id})">삭제</button>
+          </div>
+        </div>`).join('');
+    }
+
+    function toggleDetail(id) {
+      const detail = document.getElementById(`detail-${id}`);
+      if (detail) detail.classList.toggle('open');
+    }
+
+    // ──────────────────────────────────────────────
+    // 글자 수 카운터 + 오늘 날짜
+    document.addEventListener('DOMContentLoaded', () => {
+      const input   = document.getElementById('diary-input');
+      const counter = document.getElementById('char-counter');
+      if (input && counter) {
+        input.addEventListener('input', () => {
+          counter.textContent = `${input.value.length} / ${CONFIG.MAX_INPUT_LENGTH}`;
+          counter.classList.toggle('near-limit', input.value.length > CONFIG.MAX_INPUT_LENGTH * 0.85);
+        });
+      }
+      // 오늘 날짜 표시
+      const dateEl = document.getElementById('today-date');
+      if (dateEl) {
+        const now = new Date();
+        dateEl.textContent = now.toLocaleDateString('ko-KR', {
+          year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+        });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!-- Created: 2026-03-24 22:11:57 -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>냉장고 재료 인식</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 40px;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 28px;
+    }
+
+    /* 업로드 영역 */
+    #drop-zone {
+      border: 2px dashed #cbd5e0;
+      border-radius: 12px;
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: #f7fafc;
+    }
+    #drop-zone.dragover {
+      border-color: #4299e1;
+      background: #ebf8ff;
+    }
+    #drop-zone p { color: #718096; font-size: 0.9rem; margin-top: 8px; }
+    #drop-zone .icon { font-size: 2.5rem; }
+
+    #file-input { display: none; }
+
+    #preview-wrap { margin-top: 16px; display: none; }
+    #preview-wrap img {
+      width: 100%;
+      max-height: 280px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    /* 분석 버튼 */
+    #analyze-btn {
+      margin-top: 16px;
+      width: 100%;
+      padding: 12px;
+      background: #4299e1;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: none;
+      transition: background 0.2s;
+    }
+    #analyze-btn:hover { background: #3182ce; }
+    #analyze-btn:disabled { background: #a0aec0; cursor: not-allowed; }
+
+    /* 로딩 */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+      color: #4299e1;
+      font-weight: 600;
+    }
+    .spinner {
+      display: inline-block;
+      width: 24px; height: 24px;
+      border: 3px solid #bee3f8;
+      border-top-color: #4299e1;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* 재료 섹션 */
+    #result-section { display: none; margin-top: 28px; }
+    #result-section h2 { font-size: 1rem; font-weight: 600; color: #2d3748; margin-bottom: 12px; }
+
+    #tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 36px;
+    }
+
+    .tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #ebf8ff;
+      color: #2b6cb0;
+      border: 1px solid #bee3f8;
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 0.88rem;
+      font-weight: 500;
+    }
+    .tag button {
+      background: none;
+      border: none;
+      color: #63b3ed;
+      cursor: pointer;
+      font-size: 0.9rem;
+      line-height: 1;
+      padding: 0;
+    }
+    .tag button:hover { color: #2b6cb0; }
+
+    /* 재료 추가 입력 */
+    #add-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    #add-input {
+      flex: 1;
+      padding: 8px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    #add-input:focus { border-color: #4299e1; }
+    #add-btn {
+      padding: 8px 18px;
+      background: #edf2f7;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: #4a5568;
+    }
+    #add-btn:hover { background: #e2e8f0; }
+
+    /* 다음 단계 버튼 */
+    #next-btn {
+      margin-top: 24px;
+      width: 100%;
+      padding: 14px;
+      background: #48bb78;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #next-btn:hover { background: #38a169; }
+
+    /* 에러 */
+    #error-msg {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: #fff5f5;
+      border: 1px solid #fed7d7;
+      border-radius: 8px;
+      color: #c53030;
+      font-size: 0.9rem;
+    }
+
+    /* 네비게이션 */
+    .nav {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+    }
+    .nav-link {
+      font-size: 0.88rem;
+      color: #718096;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .nav-link:hover { color: #4a5568; }
+
+    /* 재시도 버튼 */
+    #retry-analyze-btn {
+      display: none;
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      background: #fff5f5;
+      color: #c53030;
+      border: 1px solid #fed7d7;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #retry-analyze-btn:hover { background: #fed7d7; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="nav">
+      <button class="nav-link" id="nav-auth-link"></button>
+    </div>
+    <h1>🧊 냉장고 재료 인식</h1>
+
+    <!-- 드래그 앤 드롭 업로드 영역 -->
+    <div id="drop-zone">
+      <div class="icon">📷</div>
+      <p>냉장고 사진을 드래그하거나<br>클릭해서 업로드하세요</p>
+      <p style="font-size:0.78rem; margin-top:6px; color:#a0aec0">JPG, PNG, WEBP · 최대 10MB</p>
+    </div>
+    <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.webp" />
+
+    <!-- 미리보기 -->
+    <div id="preview-wrap">
+      <img id="preview-img" src="" alt="미리보기" />
+    </div>
+
+    <!-- 분석 버튼 -->
+    <button id="analyze-btn">재료 분석하기</button>
+
+    <!-- 로딩 -->
+    <div id="loading">
+      <span class="spinner"></span>분석 중입니다...
+    </div>
+
+    <!-- 에러 -->
+    <div id="error-msg"></div>
+    <button id="retry-analyze-btn">다시 시도하기</button>
+
+    <!-- 결과 섹션 -->
+    <div id="result-section">
+      <h2>인식된 재료</h2>
+      <div id="tags"></div>
+      <div id="add-row">
+        <input id="add-input" type="text" placeholder="재료 직접 추가" />
+        <button id="add-btn">+ 추가</button>
+      </div>
+      <button id="next-btn">레시피 추천받기 →</button>
+    </div>
+  </div>
+
+  <script>
+    // 네비게이션 링크 초기화
+    const navAuthLink = document.getElementById('nav-auth-link');
+    if (localStorage.getItem('token')) {
+      navAuthLink.textContent = '👤 내 프로필';
+      navAuthLink.addEventListener('click', () => { window.location.href = '/profile'; });
+    } else {
+      navAuthLink.textContent = '로그인';
+      navAuthLink.addEventListener('click', () => { window.location.href = '/auth'; });
+    }
+
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const previewWrap = document.getElementById('preview-wrap');
+    const previewImg = document.getElementById('preview-img');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const loading = document.getElementById('loading');
+    const errorMsg = document.getElementById('error-msg');
+    const retryAnalyzeBtn = document.getElementById('retry-analyze-btn');
+    const resultSection = document.getElementById('result-section');
+    const tagsEl = document.getElementById('tags');
+    const addInput = document.getElementById('add-input');
+    const addBtn = document.getElementById('add-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    let selectedFile = null;
+    let ingredients = [];
+    let currentObjectURL = null;
+
+    // 드래그 앤 드롭
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) setFile(file);
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) setFile(fileInput.files[0]);
+    });
+
+    function setFile(file) {
+      selectedFile = file;
+      // 이전 Object URL 메모리 누수 방지
+      if (currentObjectURL) {
+        URL.revokeObjectURL(currentObjectURL);
+      }
+      currentObjectURL = URL.createObjectURL(file);
+      previewImg.src = currentObjectURL;
+      previewWrap.style.display = 'block';
+      analyzeBtn.style.display = 'block';
+      resultSection.style.display = 'none';
+      retryAnalyzeBtn.style.display = 'none';
+      hideError();
+      ingredients = [];
+    }
+
+    // 분석 요청
+    analyzeBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      setLoading(true);
+      hideError();
+
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+
+      try {
+        const res = await fetch('/api/analyze', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || '분석 실패');
+        ingredients = data.ingredients;
+        renderTags();
+        resultSection.style.display = 'block';
+        retryAnalyzeBtn.style.display = 'none';
+      } catch (e) {
+        showError(e.message);
+        retryAnalyzeBtn.style.display = 'block';
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // 태그 렌더링 (XSS 방지: createElement + textContent 사용)
+    function renderTags() {
+      tagsEl.innerHTML = '';
+      ingredients.forEach((ing, i) => {
+        const tag = document.createElement('div');
+        tag.className = 'tag';
+
+        const span = document.createElement('span');
+        span.textContent = ing;
+
+        const btn = document.createElement('button');
+        btn.textContent = '×';
+        btn.addEventListener('click', () => removeTag(i));
+
+        tag.appendChild(span);
+        tag.appendChild(btn);
+        tagsEl.appendChild(tag);
+      });
+    }
+
+    function removeTag(i) {
+      ingredients.splice(i, 1);
+      renderTags();
+    }
+
+    // 재료 추가
+    addBtn.addEventListener('click', addIngredient);
+    addInput.addEventListener('keydown', e => { if (e.key === 'Enter') addIngredient(); });
+    function addIngredient() {
+      const val = addInput.value.trim();
+      if (!val) return;
+      if (!ingredients.includes(val)) {
+        ingredients.push(val);
+        renderTags();
+      }
+      addInput.value = '';
+    }
+
+    // 다음 단계
+    nextBtn.addEventListener('click', () => {
+      if (ingredients.length === 0) {
+        showError('재료를 하나 이상 추가해주세요.');
+        return;
+      }
+      sessionStorage.setItem('ingredients', JSON.stringify(ingredients));
+      window.location.href = '/recipes';
+    });
+
+    // 재시도 버튼: 파일을 다시 선택할 필요 없이 현재 파일로 재분석
+    retryAnalyzeBtn.addEventListener('click', () => {
+      if (!selectedFile) return;
+      retryAnalyzeBtn.style.display = 'none';
+      analyzeBtn.click();
+    });
+
+    function setLoading(on) {
+      loading.style.display = on ? 'block' : 'none';
+      analyzeBtn.disabled = on;
+    }
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.style.display = 'block';
+    }
+    function hideError() {
+      errorMsg.style.display = 'none';
+      retryAnalyzeBtn.style.display = 'none';
+    }
+  </script>
+</body>
+</html>

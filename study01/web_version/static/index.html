@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!-- Created: 2026-03-19 16:45:00 -->
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>손글씨 숫자 인식기</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>손글씨 숫자 인식기</h1>
+
+    <div id="status-bar">
+      <span id="status-text">서버 연결 중…</span>
+      <div id="progress-wrap">
+        <div id="progress-bar"></div>
+      </div>
+    </div>
+
+    <div class="main">
+      <!-- 캔버스 영역 -->
+      <div class="canvas-section">
+        <canvas id="canvas" width="280" height="280"></canvas>
+        <div class="btn-row">
+          <button id="btn-clear">지우기</button>
+          <button id="btn-predict">예측</button>
+        </div>
+      </div>
+
+      <!-- 결과 영역 -->
+      <div class="result-section">
+        <div id="prediction">—</div>
+        <div id="confidence"></div>
+
+        <div class="bars-label">각 숫자별 확률</div>
+        <div id="bars">
+          <!-- 0~9 confidence bars — JS로 생성 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!-- Created: 2026-03-19 22:05:11 -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>상식 퀴즈 게임</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── 홈 화면 ──────────────────────────────────────────────────────────── -->
+  <div id="screen-home" class="screen active">
+    <div class="card">
+      <h1 class="app-title">🧠 상식 퀴즈</h1>
+      <p class="app-subtitle">한국사 · 과학 · 지리 · 일반상식</p>
+
+      <p id="best-score" class="best-score" style="display:none;"></p>
+
+      <div class="mode-buttons">
+        <button id="btn-all" class="btn btn-primary btn-full">
+          🎯 전체 플레이 <span class="badge">40문제</span>
+        </button>
+
+        <div class="category-buttons">
+          <button id="btn-korean-history" class="btn btn-category" style="--cat-color: #B91C1C;">
+            📜 한국사
+          </button>
+          <button id="btn-science" class="btn btn-category" style="--cat-color: #0891B2;">
+            🔬 과학
+          </button>
+          <button id="btn-geography" class="btn btn-category" style="--cat-color: #15803D;">
+            🌍 지리
+          </button>
+          <button id="btn-general" class="btn btn-category" style="--cat-color: #7C3AED;">
+            💡 일반상식
+          </button>
+        </div>
+      </div>
+
+      <button id="btn-ranking" class="btn btn-outline btn-full">
+        🏆 순위표 보기
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 퀴즈 진행 화면 ────────────────────────────────────────────────────── -->
+  <div id="screen-quiz" class="screen">
+    <div class="card">
+      <!-- 카테고리 뱃지 + 진행률 텍스트 -->
+      <div class="quiz-header">
+        <span id="quiz-category-badge" class="category-badge"></span>
+        <span id="quiz-progress-text" class="quiz-progress-text"></span>
+      </div>
+
+      <!-- 진행률 바 -->
+      <div id="quiz-progress-bar" class="quiz-progress-bar">
+        <div id="quiz-progress-fill" class="quiz-progress-fill"></div>
+      </div>
+
+      <!-- 타이머 바 -->
+      <div id="quiz-timer-bar" class="quiz-timer-bar">
+        <div id="quiz-timer-fill" class="quiz-timer-fill"></div>
+      </div>
+
+      <!-- 타이머 숫자 + 점수 -->
+      <div class="quiz-meta">
+        <span id="quiz-timer-text" class="quiz-timer-text">30</span>
+        <span id="quiz-score" class="quiz-score">점수: 0</span>
+      </div>
+
+      <!-- 문제 -->
+      <p id="quiz-question" class="quiz-question"></p>
+
+      <!-- 선택지 -->
+      <div id="quiz-options" class="quiz-options"></div>
+    </div>
+  </div>
+
+  <!-- ── 즉시 피드백 화면 ───────────────────────────────────────────────────── -->
+  <div id="screen-feedback" class="screen">
+    <div class="card">
+      <div id="feedback-icon" class="feedback-icon"></div>
+      <h2 id="feedback-title" class="feedback-title"></h2>
+      <p id="feedback-points" class="feedback-points"></p>
+      <p id="feedback-answer" class="feedback-answer"></p>
+      <div class="feedback-explanation-box">
+        <p id="feedback-explanation" class="feedback-explanation"></p>
+      </div>
+      <button id="feedback-next-btn" class="btn btn-primary btn-full">다음 문제 →</button>
+    </div>
+  </div>
+
+  <!-- ── 최종 결과 화면 ─────────────────────────────────────────────────────── -->
+  <div id="screen-result" class="screen">
+    <div class="card">
+      <h2 class="result-title">최종 결과</h2>
+      <div id="result-score" class="result-score">0점</div>
+      <div id="result-correct" class="result-correct"></div>
+      <div id="result-grade" class="result-grade"></div>
+
+      <div id="result-category-table" class="result-category-table"></div>
+
+      <div class="nickname-wrap">
+        <label for="result-nickname">닉네임을 입력하고 순위에 등록하세요</label>
+        <div class="nickname-row">
+          <input id="result-nickname" class="nickname-input" type="text"
+                 placeholder="닉네임 (미입력 시 익명)" maxlength="10" />
+          <button id="result-save-btn" class="btn btn-primary">순위 등록</button>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button id="result-retry-btn" class="btn btn-outline">다시 하기</button>
+        <button id="result-home-btn" class="btn btn-outline">홈으로</button>
+        <button id="result-ranking-btn" class="btn btn-outline">순위표</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 순위표 화면 ─────────────────────────────────────────────────────────── -->
+  <div id="screen-ranking" class="screen">
+    <div class="card">
+      <h2 class="ranking-title">🏆 순위표</h2>
+      <ol id="ranking-list" class="ranking-list"></ol>
+      <button id="ranking-home-btn" class="btn btn-outline btn-full">홈으로</button>
+    </div>
+  </div>
+
+  <script src="quiz.js"></script>
+</body>
+</html>

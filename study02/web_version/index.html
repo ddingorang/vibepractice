@@ -1,0 +1,74 @@
+<!-- Created: 2026-03-19 21:33:46 -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>할 일 관리</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand">
+          <h1>할 일 관리</h1>
+          <button id="theme-toggle" aria-label="다크 모드 전환">🌙</button>
+        </div>
+        <p id="today-date"></p>
+      </div>
+
+      <div class="sidebar-progress">
+        <div id="progress-text"></div>
+        <div id="progress-bar">
+          <div id="progress-fill"></div>
+        </div>
+        <div id="progress-stats"></div>
+      </div>
+
+      <nav class="sidebar-filters">
+        <p class="filter-label">카테고리</p>
+        <button class="tab-btn active" data-category="all">
+          <span class="tab-icon">📋</span> 전체
+        </button>
+        <button class="tab-btn" data-category="work">
+          <span class="tab-icon">💼</span> 업무
+        </button>
+        <button class="tab-btn" data-category="personal">
+          <span class="tab-icon">🌿</span> 개인
+        </button>
+        <button class="tab-btn" data-category="study">
+          <span class="tab-icon">📚</span> 공부
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="clear-completed">완료 항목 삭제</button>
+        <button id="export-btn">JSON 내보내기</button>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <div class="main-header">
+        <h2 id="section-title">전체 할 일</h2>
+        <div class="input-section">
+          <input type="text" id="todo-input" placeholder="새 할 일을 입력하세요...">
+          <select id="category-select">
+            <option value="work">💼 업무</option>
+            <option value="personal">🌿 개인</option>
+            <option value="study">📚 공부</option>
+          </select>
+          <button id="add-btn">추가</button>
+        </div>
+      </div>
+
+      <ul id="todo-list"></ul>
+    </main>
+
+  </div>
+</body>
+</html>
