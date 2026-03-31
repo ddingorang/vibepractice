@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(find /Users/sanghyun/Desktop/vibecoding/study01 -type f -not -path */.* -not -path */__pycache__/* -not -path */mnist_data/*)"
-    ]
-  }
-}
